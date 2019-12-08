@@ -6,7 +6,7 @@
 #include <cctype>
 #include <set>
 #include <iomanip> // setw
-
+#include <vector>
 
 #include "dictionary.h"
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 	checkSpelling(inf, d);
 
 	inf.close();
-
+	system("pause");
 	return EXIT_SUCCESS;
 }
 
@@ -64,7 +64,75 @@ void checkSpelling(ifstream& in, Dictionary& dict) {
 		string word;
 		while (ss >> word) 
         {
-            // TODO: Complete the spell check of each word
+			// TODO: Complete the spell check of each word
+			lower(word);
+			word = stripPunct(word);
+			if (!dict.search(word))
+			{
+				vector<string> variants;
+				//Transposing of adjacent letters
+				for (size_t i = 0; i < word.length()-1; i++)
+				{
+					string testword = word;
+					swap(testword[i], testword[i + 1]);
+					if (dict.search(testword))
+						variants.push_back(testword);
+						//cout << " " << testword;
+				}
+				//Removal of each letter
+				for (size_t i = 0; i < word.length(); i++)
+				{
+					string testword = word;
+					testword.erase(i, 1);
+					if (dict.search(testword))
+						variants.push_back(testword);
+
+//						cout << " " << testword;
+				}
+				//Replacement of each letter
+				for (size_t i = 0; i < word.length(); i++)
+				{
+					string testword = word;
+					for (char c = 'a'; c <= 'z'; c++)
+					{
+						if (c != word[i])
+						{
+							testword[i] = c;
+							if (dict.search(testword))
+								variants.push_back(testword);
+							//cout << " " << testword;
+						}
+					}
+				}
+				//Inserting any letter at any position in a word
+				for (size_t i = 0; i <= word.length(); i++)
+				{
+					for (char c = 'a'; c <= 'z'; c++)
+					{
+						string testword = word;
+						testword=testword.insert(i,1, c);
+						if (dict.search(testword))
+							variants.push_back(testword);
+							//cout << " " << testword;
+					}
+				}
+				Dictionary uniq;
+				cout << line_number << " " << word << ":";
+				if (variants.size() == 0)
+					cout << " -none-";
+				else
+				{
+					for (size_t i = 0; i < variants.size(); i++)
+					{
+						if (!uniq.search(variants[i]))
+						{
+							cout << " " << variants[i];
+							uniq.insert(variants[i]);
+						}
+					}
+				}
+				cout << endl;
+			}
 		}
 	}
 }
@@ -72,7 +140,7 @@ void checkSpelling(ifstream& in, Dictionary& dict) {
 void lower(string& s) {
 
     // Ensures that a word is lowercase
-	for (int i = 0; i < s.length(); i++)
+	for (size_t i = 0; i < s.length(); i++)
     {
 		s[i] = tolower(s[i]);
 	}
